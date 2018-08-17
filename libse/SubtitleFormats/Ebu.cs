@@ -261,6 +261,7 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                 }
                 if (header.CharacterCodeTableNumber == "00")
                 {
+					//System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance); //This will enable for format converter with framework version 4.6  and above
                     encoding = Encoding.GetEncoding(20269);
                     // 0xC1—0xCF combines characters - http://en.wikipedia.org/wiki/ISO/IEC_6937
 
@@ -403,7 +404,7 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                     {
                         TextField = encoding.GetString(new byte[] { 0x0b, 0x0b }) + TextField; // b=start box
                     }
-                    else if (Configuration.Settings.SubtitleSettings.EbuStlTeletextUseDoubleHeight)
+                    else if (Configuration.Settings.SubtitleSettings.EbuStlTeletextUseBox && Configuration.Settings.SubtitleSettings.EbuStlTeletextUseDoubleHeight)
                     {
                         TextField = encoding.GetString(new byte[] { 0x0d }) + TextField; // d=double height
                     }
@@ -619,7 +620,152 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                 return ok;
             }
         }
+        //for format converter app realted code cahgnes
+        public byte[] ebuStlSave(string fileName, Subtitle subtitle, EbuGeneralSubtitleInformation header)
+        {
+            if (header == null)
+                header = new EbuGeneralSubtitleInformation();
 
+
+            if (subtitle.Header != null && subtitle.Header.Length == 1024 && (subtitle.Header.Contains("STL24") || subtitle.Header.Contains("STL25") || subtitle.Header.Contains("STL29") || subtitle.Header.Contains("STL30")))
+            {
+                header = ReadHeader(Encoding.UTF8.GetBytes(subtitle.Header));
+                EbuUiHelper.Initialize(header, EbuUiHelper.JustificationCode, null, subtitle);
+            }
+            //else
+            //{
+            //    EbuUiHelper.Initialize(header, EbuUiHelper.JustificationCode, fileName, subtitle);
+            //}
+
+            header.TotalNumberOfSubtitles = subtitle.Paragraphs.Count.ToString("D5"); // seems to be 1 higher than actual number of subtitles
+            header.TotalNumberOfTextAndTimingInformationBlocks = header.TotalNumberOfSubtitles;
+
+            var today = $"{DateTime.Now:yyMMdd}";
+            if (today.Length == 6)
+            {
+                header.CreationDate = today;
+                header.RevisionDate = today;
+            }
+
+            var firstParagraph = subtitle.GetParagraphOrDefault(0);
+            if (firstParagraph != null)
+            {
+                var tc = firstParagraph.StartTime;
+                string firstTimeCode = $"{tc.Hours:00}{tc.Minutes:00}{tc.Seconds:00}{EbuTextTimingInformation.GetFrameFromMilliseconds(tc.Milliseconds, header.FrameRate):00}";
+                if (firstTimeCode.Length == 8)
+                    header.TimeCodeFirstInCue = firstTimeCode;
+            }
+            byte[] buffer = Encoding.Default.GetBytes(header.ToString());
+
+
+            int subtitleNumber = 0;
+            foreach (var p in subtitle.Paragraphs)
+            {
+                var tti = new EbuTextTimingInformation();
+
+                int rows;
+                if (!int.TryParse(header.MaximumNumberOfDisplayableRows, out rows))
+                    rows = 23;
+
+                if (header.DisplayStandardCode == "1" || header.DisplayStandardCode == "2") // teletext
+                    rows = 23;
+                else if (header.DisplayStandardCode == "0" && header.MaximumNumberOfDisplayableRows == "02") // open subtitling
+                    rows = 15;
+
+                var text = p.Text.Trim(Utilities.NewLineChars);
+                if (text.StartsWith("{\\an7}", StringComparison.Ordinal) || text.StartsWith("{\\an8}", StringComparison.Ordinal) || text.StartsWith("{\\an9}", StringComparison.Ordinal))
+                {
+                    tti.VerticalPosition = (byte)(1 + Configuration.Settings.SubtitleSettings.EbuStlMarginTop); // top (vertical)
+                }
+                else if (text.StartsWith("{\\an4}", StringComparison.Ordinal) || text.StartsWith("{\\an5}", StringComparison.Ordinal) || text.StartsWith("{\\an6}", StringComparison.Ordinal))
+                {
+                    tti.VerticalPosition = (byte)(rows / 2); // middle (vertical)
+                }
+                else if (text.StartsWith("{\\an1}", StringComparison.Ordinal) || text.StartsWith("{\\an2}", StringComparison.Ordinal) || text.StartsWith("{\\an3}", StringComparison.Ordinal))
+                {
+                    int startRow = rows - Configuration.Settings.SubtitleSettings.EbuStlMarginBottom -
+                                          (Utilities.GetNumberOfLines(text) - 1) * Configuration.Settings.SubtitleSettings.EbuStlNewLineRows;
+                    if (startRow < 0)
+                        startRow = 0;
+                    tti.VerticalPosition = (byte)startRow; // bottom (vertical)
+                }
+                //start new vertical code reading from formatconverter
+                else if (p.Vertical == 1)
+                {
+                    tti.VerticalPosition = (byte)(1 + Configuration.Settings.SubtitleSettings.EbuStlMarginTop); // top (vertical)
+                }
+                else if (p.Vertical > 1 && p.Vertical < 15)
+                {
+                    tti.VerticalPosition = (byte)(rows / 2); // middle (vertical)
+                }
+                if (p.Vertical == 15)
+                {
+                    int startRow = rows - Configuration.Settings.SubtitleSettings.EbuStlMarginBottom -
+                                          (Utilities.GetNumberOfLines(text) - 1) * Configuration.Settings.SubtitleSettings.EbuStlNewLineRows;
+                    if (startRow < 0)
+                        startRow = 0;
+                    tti.VerticalPosition = (byte)startRow; // bottom (vertical)
+                }//end new vertical code reading from formatconverter
+                tti.JustificationCode = 2; // use default justification
+                //start new justification code reading from formatconverter
+                if (p.Justification == "C")
+                {
+                    tti.JustificationCode = 2;
+                }
+                else if (p.Justification == "L")
+                {
+                    tti.JustificationCode = 1;
+                }
+                if (p.Justification == "R")
+                {
+                    tti.JustificationCode = 3;
+                }//end new justification code reading from formatconverter
+                else if (text.StartsWith("{\\an1}", StringComparison.Ordinal) || text.StartsWith("{\\an4}", StringComparison.Ordinal) || text.StartsWith("{\\an7}", StringComparison.Ordinal))
+                {
+                    tti.JustificationCode = 1; // 01h=left-justified text
+                }
+                else if (text.StartsWith("{\\an3}", StringComparison.Ordinal) || text.StartsWith("{\\an6}", StringComparison.Ordinal) || text.StartsWith("{\\an9}", StringComparison.Ordinal))
+                {
+                    tti.JustificationCode = 3; // 03h=right-justified
+                }
+                else if (text.StartsWith("{\\an2}", StringComparison.Ordinal) || text.StartsWith("{\\an5}", StringComparison.Ordinal) || text.StartsWith("{\\an8}", StringComparison.Ordinal))
+                {
+                    tti.JustificationCode = 2; // 02h=centred text
+                }
+
+                // replace some unsupported characters
+                text = text.Replace("„", "\""); // lower quote
+                text = text.Replace("‚", "’"); // lower apostrophe
+                text = text.Replace("♫", "♪"); // only music single note supported
+
+                tti.SubtitleNumber = (ushort)subtitleNumber;
+                tti.TextField = text;
+                int startTag = tti.TextField.IndexOf('}');
+                if (tti.TextField.StartsWith("{\\", StringComparison.Ordinal) && startTag > 0 && startTag < 10)
+                {
+                    tti.TextField = tti.TextField.Remove(0, startTag + 1);
+                }
+
+                tti.TimeCodeInHours = p.StartTime.Hours;
+                tti.TimeCodeInMinutes = p.StartTime.Minutes;
+                tti.TimeCodeInSeconds = p.StartTime.Seconds;
+                tti.TimeCodeInMilliseconds = p.StartTime.Milliseconds;
+                tti.TimeCodeOutHours = p.EndTime.Hours;
+                tti.TimeCodeOutMinutes = p.EndTime.Minutes;
+                tti.TimeCodeOutSeconds = p.EndTime.Seconds;
+                tti.TimeCodeOutMilliseconds = p.EndTime.Milliseconds;
+                byte[] second = tti.GetBytes(header);
+                buffer = Combine(buffer, second);
+            }
+            return buffer;
+        }
+        public static byte[] Combine(byte[] first, byte[] second)
+        {
+            byte[] ret = new byte[first.Length + second.Length];
+            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
+            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
+            return ret;
+        }
         public bool Save(string fileName, Stream stream, Subtitle subtitle, bool batchMode, EbuGeneralSubtitleInformation header)
         {
             if (header == null)
@@ -686,7 +832,7 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                 {
                     tti.VerticalPosition = (byte)(rows / 2); // middle (vertical)
                 }
-                else
+                else if (text.StartsWith("{\\an1}", StringComparison.Ordinal) || text.StartsWith("{\\an2}", StringComparison.Ordinal) || text.StartsWith("{\\an3}", StringComparison.Ordinal))
                 {
                     int startRow = rows - Configuration.Settings.SubtitleSettings.EbuStlMarginBottom -
                                           (Utilities.GetNumberOfLines(text) - 1) * Configuration.Settings.SubtitleSettings.EbuStlNewLineRows;
@@ -694,9 +840,43 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                         startRow = 0;
                     tti.VerticalPosition = (byte)startRow; // bottom (vertical)
                 }
+                //start new vertical code reading from formatconverter
+                else if (p.Vertical == 1)
+                {
+                    tti.VerticalPosition = (byte)(1 + Configuration.Settings.SubtitleSettings.EbuStlMarginTop); // top (vertical)
+                    tti.VerticalPosition = (byte)( p.Vertical);//newly added 
+                }
+                else if (p.Vertical >1 && p.Vertical<15)
+                {
+                    tti.VerticalPosition = (byte)(rows / 2); // middle (vertical)
+                    tti.VerticalPosition = (byte)( p.Vertical);//newly added                     
+                }
+                if (p.Vertical == 15)
+                {
+                    int startRow = rows - Configuration.Settings.SubtitleSettings.EbuStlMarginBottom -
+                                          (Utilities.GetNumberOfLines(text) - 1) * Configuration.Settings.SubtitleSettings.EbuStlNewLineRows;
+                    if (startRow < 0)
+                        startRow = 0;
+                    tti.VerticalPosition = (byte)startRow; // bottom (vertical)
+
+                    //tti.VerticalPosition = (byte)(p.Vertical); //newly added 
+                }//end new vertical code reading from formatconverter
 
                 tti.JustificationCode = EbuUiHelper.JustificationCode; // use default justification
-                if (text.StartsWith("{\\an1}", StringComparison.Ordinal) || text.StartsWith("{\\an4}", StringComparison.Ordinal) || text.StartsWith("{\\an7}", StringComparison.Ordinal))
+                //start new justification code reading from formatconverter
+                if(p.Justification=="C")
+                {
+                    tti.JustificationCode = 2;
+                }
+                else if (p.Justification == "L")
+                {
+                    tti.JustificationCode = 1;
+                }
+                if (p.Justification == "R")
+                {
+                    tti.JustificationCode = 3;
+                }//end new justification code reading from formatconverter
+                else if(text.StartsWith("{\\an1}", StringComparison.Ordinal) || text.StartsWith("{\\an4}", StringComparison.Ordinal) || text.StartsWith("{\\an7}", StringComparison.Ordinal))
                 {
                     tti.JustificationCode = 1; // 01h=left-justified text
                 }
@@ -706,7 +886,7 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                 }
                 else if (text.StartsWith("{\\an2}", StringComparison.Ordinal) || text.StartsWith("{\\an5}", StringComparison.Ordinal) || text.StartsWith("{\\an8}", StringComparison.Ordinal))
                 {
-                    tti.JustificationCode = 2; // 02h=centred text
+                    tti.JustificationCode = 2; // 02h=centred text 
                 }
 
                 // replace some unsupported characters
@@ -736,6 +916,8 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
             }
             return true;
         }
+
+
 
         public override bool IsMine(List<string> lines, string fileName)
         {

@@ -37,7 +37,19 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
         private static readonly Regex Regex = new Regex(TimeCodeRegEx, RegexOptions.Compiled);
         protected virtual Regex RegexTimeCodes => Regex;
         protected bool DropFrame = false;
-
+        public static List<KeyValuePair<string, string>> AllignmentDictionary = new List<KeyValuePair<string, string>>
+        {
+            new KeyValuePair<string,string>("91d0",                  "{\\an7}" ),  //white top left
+            new KeyValuePair<string,string>("91d6",                  "{\\an8}" ),  //trans reg top mid
+            new KeyValuePair<string,string>("915e",                  "{\\an9}" ),  //trans reg top right
+            //new KeyValuePair<string,string>("91dc",                  "{\\an9}" ),  //trans reg top right
+            new KeyValuePair<string,string>("1670",                  "{\\an4}" ),  //white reg mid left
+            new KeyValuePair<string,string>("1676",                  "{\\an5}" ),  //trans reg mid mid
+            new KeyValuePair<string,string>("167c",                  "{\\an6}" ),  //trans reg mid right
+            new KeyValuePair<string,string>("9470",                  "{\\an1}" ),  //white reg bot left
+            new KeyValuePair<string,string>("9476",                  "{\\an2}" ),  //trans reg bot mid 
+            new KeyValuePair<string,string>("947c",                  "{\\an3}" ),   //trans reg bot right
+        };
         public static List<KeyValuePair<string, string>> LetterDictionary = new List<KeyValuePair<string, string>>
         {
             new KeyValuePair<string,string>("20",                  " " ),
@@ -451,7 +463,645 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
             new KeyValuePair<string,string>("d580 923d 923d",      "Û"),
             new KeyValuePair<string,string>("923d 923d",           "Û"),
         };
-
+        // list of position related codes
+        private static List<KeyValuePair<string, SccPositionAndStyle>> PositionDictionary = new List<KeyValuePair<string, SccPositionAndStyle>>
+        {
+             new KeyValuePair<string,SccPositionAndStyle>("91d0", new SccPositionAndStyle(Color.White, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1140", new SccPositionAndStyle(Color.White, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1160", new SccPositionAndStyle(Color.White, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1240", new SccPositionAndStyle(Color.White, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1260", new SccPositionAndStyle(Color.White, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1540", new SccPositionAndStyle(Color.White, FontStyle.Regular, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1560", new SccPositionAndStyle(Color.White, FontStyle.Regular, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1640", new SccPositionAndStyle(Color.White, FontStyle.Regular, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1660", new SccPositionAndStyle(Color.White, FontStyle.Regular, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1740", new SccPositionAndStyle(Color.White, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1760", new SccPositionAndStyle(Color.White, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1040", new SccPositionAndStyle(Color.White, FontStyle.Regular, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1340", new SccPositionAndStyle(Color.White, FontStyle.Regular, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1360", new SccPositionAndStyle(Color.White, FontStyle.Regular, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1440", new SccPositionAndStyle(Color.White, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1460", new SccPositionAndStyle(Color.White, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1141", new SccPositionAndStyle(Color.White, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1161", new SccPositionAndStyle(Color.White, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1241", new SccPositionAndStyle(Color.White, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1261", new SccPositionAndStyle(Color.White, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1541", new SccPositionAndStyle(Color.White, FontStyle.Underline, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1561", new SccPositionAndStyle(Color.White, FontStyle.Underline, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1641", new SccPositionAndStyle(Color.White, FontStyle.Underline, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1661", new SccPositionAndStyle(Color.White, FontStyle.Underline, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1741", new SccPositionAndStyle(Color.White, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1761", new SccPositionAndStyle(Color.White, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1041", new SccPositionAndStyle(Color.White, FontStyle.Underline, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1341", new SccPositionAndStyle(Color.White, FontStyle.Underline, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1361", new SccPositionAndStyle(Color.White, FontStyle.Underline, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1441", new SccPositionAndStyle(Color.White, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1461", new SccPositionAndStyle(Color.White, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1142", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1162", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1242", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1262", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1542", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1562", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1642", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1662", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1742", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1762", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1042", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1342", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1362", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1442", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1462", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1143", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1163", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1243", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1263", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1543", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1563", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1643", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1663", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1743", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1763", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1043", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1343", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1363", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1443", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1463", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1144", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1164", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1244", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1264", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1544", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1564", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1644", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1664", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1744", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1764", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1044", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1344", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1364", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1444", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1464", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1145", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1165", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1245", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1265", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1545", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1565", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1645", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1665", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1745", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1765", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1045", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1345", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1365", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1445", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1465", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1146", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1166", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1246", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1266", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1546", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1566", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1646", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1666", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1746", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1766", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1046", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1346", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1366", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1446", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1466", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1147", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1167", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1247", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1267", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1547", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1567", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1647", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1667", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1747", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1767", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1047", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1347", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1367", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1447", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1467", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1148", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1168", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1248", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1268", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1548", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1568", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1648", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1668", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1748", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1768", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1048", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1348", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1368", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1448", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1468", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1149", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1169", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1249", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1269", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1549", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1569", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1649", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1669", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1749", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1769", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1049", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1349", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1369", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1449", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1469", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("114a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("116a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("124a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("126a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("154a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("156a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("164a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("166a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("174a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("176a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("104a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("134a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("136a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("144a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("146a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("114b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("116b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("124b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("126b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("154b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("156b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("164b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("166b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("174b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("176b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("104b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("134b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("136b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("144b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("146b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("114c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("116c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("124c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("126c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("154c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("156c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("164c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("166c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("174c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("176c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("104c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("134c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("136c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("144c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("146c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("114d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("116d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("124d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("126d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("154d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("156d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("164d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("166d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("174d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("176d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("104d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("134d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("136d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("144d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("146d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("114e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("116e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("124e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("126e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("154e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("156e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("164e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("166e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("174e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("176e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("104e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("134e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("136e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("144e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("146e", new SccPositionAndStyle(Color.White, FontStyle.Italic, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("114f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("116f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("124f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("126f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("154f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("156f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("164f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("166f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("174f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("176f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("104f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("134f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("136f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("144f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("146f", new SccPositionAndStyle(Color.White, FontStyle.Underline | FontStyle.Italic, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91d0", new SccPositionAndStyle(Color.White, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9151", new SccPositionAndStyle(Color.White, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91c2", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9143", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91c4", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9145", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9146", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91c7", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91c8", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9149", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("914a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91cb", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("914c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91cd", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 1, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9170", new SccPositionAndStyle(Color.White, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91f1", new SccPositionAndStyle(Color.White, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9162", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91e3", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9164", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91e5", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91e6", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9167", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9168", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91e9", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91ea", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("916b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("91ec", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("916d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 2, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92d0", new SccPositionAndStyle(Color.White, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9251", new SccPositionAndStyle(Color.White, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92c2", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9243", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92c4", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9245", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9246", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92c7", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92c8", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9249", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("924a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92cb", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("924c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92cd", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 3, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9270", new SccPositionAndStyle(Color.White, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92f1", new SccPositionAndStyle(Color.White, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9262", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92e3", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9264", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92e5", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92e6", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9267", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9268", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92e9", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92ea", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("926b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("92ec", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("926d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 4, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("15d0", new SccPositionAndStyle(Color.White, FontStyle.Regular, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1551", new SccPositionAndStyle(Color.White, FontStyle.Underline, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("15c2", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("15c4", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("15c7", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("15c8", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("15cb", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("15cd", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 5, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1570", new SccPositionAndStyle(Color.White, FontStyle.Regular, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("15f1", new SccPositionAndStyle(Color.White, FontStyle.Underline, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("15e5", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("15e6", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("15e9", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("15ea", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("15ec", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 6, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16d0", new SccPositionAndStyle(Color.White, FontStyle.Regular, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1651", new SccPositionAndStyle(Color.White, FontStyle.Underline, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16c2", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16c4", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16c7", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16c8", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16cb", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16cd", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 7, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1670", new SccPositionAndStyle(Color.White, FontStyle.Regular, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16f1", new SccPositionAndStyle(Color.White, FontStyle.Underline, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16e3", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16e5", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16e6", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16e9", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16ea", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("16ec", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 8, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97d0", new SccPositionAndStyle(Color.White, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9751", new SccPositionAndStyle(Color.White, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97c2", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9743", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97c4", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9745", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9746", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97c7", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97c8", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9749", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("974a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97cb", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("974c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97cd", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 9, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9770", new SccPositionAndStyle(Color.White, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97f1", new SccPositionAndStyle(Color.White, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9762", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97e3", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9764", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97e5", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97e6", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9767", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9768", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97e9", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97ea", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("976b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("97ec", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("976d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 10, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("10d0", new SccPositionAndStyle(Color.White, FontStyle.Regular, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1051", new SccPositionAndStyle(Color.White, FontStyle.Underline, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("10c2", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("10c4", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("10c7", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("10c8", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("10cb", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("10cd", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 11, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13d0", new SccPositionAndStyle(Color.White, FontStyle.Regular, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1351", new SccPositionAndStyle(Color.White, FontStyle.Underline, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13c2", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13c4", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13c7", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13c8", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13cb", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13cd", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 12, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("1370", new SccPositionAndStyle(Color.White, FontStyle.Regular, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13f1", new SccPositionAndStyle(Color.White, FontStyle.Underline, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13e3", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13e5", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13e6", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13e9", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13ea", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("13ec", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 13, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94d0", new SccPositionAndStyle(Color.White, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9451", new SccPositionAndStyle(Color.White, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94c2", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9443", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94c4", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9445", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9446", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94c7", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94c8", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9449", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("944a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94cb", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("944c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94cd", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 14, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9470", new SccPositionAndStyle(Color.White, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94f1", new SccPositionAndStyle(Color.White, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9462", new SccPositionAndStyle(Color.Green, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94e3", new SccPositionAndStyle(Color.Green, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9464", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94e5", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94e6", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9467", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9468", new SccPositionAndStyle(Color.Red, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94e9", new SccPositionAndStyle(Color.Red, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94ea", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("946b", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("94ec", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("946d", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, 15, 0)),
+             new KeyValuePair<string,SccPositionAndStyle>("9152", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 1, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("91d3", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 1, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("9154", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 1, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("91d5", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 1, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("91d6", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 1, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("9157", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 1, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("9158", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 1, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("91d9", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 1, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("91da", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 1, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("915b", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 1, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("91dc", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 1, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("915d", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 1, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("915e", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 1, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("91df", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 1, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("91f2", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 2, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("9173", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 2, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("91f4", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 2, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("9175", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 2, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("9176", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 2, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("91f7", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 2, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("91f8", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 2, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("9179", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 2, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("917a", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 2, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("91fb", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 2, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("917c", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 2, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("91fd", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 2, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("91fe", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 2, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("917f", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 2, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("9252", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 3, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("92d3", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 3, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("9254", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 3, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("92d5", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 3, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("92d6", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 3, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("9257", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 3, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("9258", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 3, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("92d9", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 3, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("92da", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 3, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("925b", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 3, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("92dc", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 3, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("925d", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 3, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("925e", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 3, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("92df", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 3, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("92f2", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 4, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("9273", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 4, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("92f4", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 4, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("9275", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 4, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("9276", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 4, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("92f7", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 4, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("92f8", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 4, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("9279", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 4, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("927a", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 4, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("92fb", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 4, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("927c", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 4, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("92fd", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 4, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("92fe", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 4, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("927f", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 4, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("1552", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 5, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("15d3", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 5, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("1554", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 5, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("15d5", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 5, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("15d6", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 5, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("1557", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 5, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("1558", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 5, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("15d9", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 5, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("15da", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 5, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("155b", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 5, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("15dc", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 5, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("155d", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 5, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("155e", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 5, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("15df", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 5, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("15f2", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 6, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("1573", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 6, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("15f4", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 6, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("1575", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 6, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("1576", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 6, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("15f7", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 6, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("15f8", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 6, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("1579", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 6, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("157a", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 6, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("15fb", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 6, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("157c", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 6, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("15fd", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 6, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("15fe", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 6, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("157f", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 6, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("1652", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 7, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("16d3", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 7, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("1654", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 7, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("16d5", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 7, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("16d6", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 7, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("1657", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 7, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("1658", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 7, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("16d9", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 7, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("16da", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 7, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("165b", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 7, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("16dc", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 7, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("165d", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 7, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("165e", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 7, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("16df", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 7, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("16f2", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 8, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("1673", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 8, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("16f4", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 8, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("1675", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 8, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("1676", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 8, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("16f7", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 8, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("16f8", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 8, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("1679", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 8, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("167a", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 8, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("16fb", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 8, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("167c", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 8, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("16fd", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 8, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("16fe", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 8, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("167f", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 8, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("9752", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 9, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("97d3", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 9, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("9754", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 9, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("97d5", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 9, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("97d6", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 9, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("9757", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 9, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("9758", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 9, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("97d9", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 9, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("97da", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 9, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("975b", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 9, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("97dc", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 9, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("975d", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 9, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("975e", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 9, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("97df", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 9, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("97f2", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 10, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("9773", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 10, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("97f4", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 10, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("9775", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 10, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("9776", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 10, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("97f7", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 10, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("97f8", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 10, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("9779", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 10, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("977a", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 10, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("97fb", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 10, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("977c", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 10, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("97fd", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 10, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("97fe", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 10, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("977f", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 10, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("1052", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 11, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("10d3", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 11, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("1054", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 11, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("10d5", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 11, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("10d6", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 11, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("1057", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 11, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("1058", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 11, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("10d9", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 11, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("10da", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 11, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("105b", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 11, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("10dc", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 11, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("105d", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 11, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("105e", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 11, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("10df", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 11, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("1352", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 12, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("13d3", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 12, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("1354", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 12, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("13d5", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 12, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("13d6", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 12, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("1357", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 12, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("1358", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 12, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("13d9", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 12, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("13da", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 12, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("135b", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 12, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("13dc", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 12, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("135d", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 12, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("135e", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 12, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("13df", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 12, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("13f2", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 13, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("1373", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 13, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("13f4", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 13, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("1375", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 13, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("1376", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 13, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("13f7", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 13, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("13f8", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 13, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("1379", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 13, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("137a", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 13, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("13fb", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 13, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("137c", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 13, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("13fd", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 13, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("13fe", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 13, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("137f", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 13, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("9452", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 14, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("94d3", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 14, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("9454", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 14, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("94d5", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 14, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("94d6", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 14, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("9457", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 14, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("9458", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 14, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("94d9", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 14, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("94da", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 14, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("945b", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 14, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("94dc", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 14, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("945d", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 14, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("945e", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 14, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("94df", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 14, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("94f2", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 15, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("9473", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 15, 4)),
+             new KeyValuePair<string,SccPositionAndStyle>("94f4", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 15, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("9475", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 15, 8)),
+             new KeyValuePair<string,SccPositionAndStyle>("9476", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 15, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("94f7", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 15, 12)),
+             new KeyValuePair<string,SccPositionAndStyle>("94f8", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 15, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("9479", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 15, 16)),
+             new KeyValuePair<string,SccPositionAndStyle>("947a", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 15, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("94fb", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 15, 20)),
+             new KeyValuePair<string,SccPositionAndStyle>("947c", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 15, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("94fd", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 15, 24)),
+             new KeyValuePair<string,SccPositionAndStyle>("94fe", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, 15, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("947f", new SccPositionAndStyle(Color.Transparent, FontStyle.Underline, 15, 28)),
+             new KeyValuePair<string,SccPositionAndStyle>("9120", new SccPositionAndStyle(Color.White, FontStyle.Regular, -1, -1)),                                    // mid-row commands
+             new KeyValuePair<string,SccPositionAndStyle>("91a1", new SccPositionAndStyle(Color.White, FontStyle.Underline, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("91a2", new SccPositionAndStyle(Color.Green, FontStyle.Regular, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("9123", new SccPositionAndStyle(Color.Green, FontStyle.Underline, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("91a4", new SccPositionAndStyle(Color.Blue, FontStyle.Regular, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("9125", new SccPositionAndStyle(Color.Blue, FontStyle.Underline, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("9126", new SccPositionAndStyle(Color.Cyan, FontStyle.Regular, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("91a7", new SccPositionAndStyle(Color.Cyan, FontStyle.Underline, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("91a8", new SccPositionAndStyle(Color.Red, FontStyle.Regular, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("9129", new SccPositionAndStyle(Color.Red, FontStyle.Underline, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("912a", new SccPositionAndStyle(Color.Yellow, FontStyle.Regular, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("91ab", new SccPositionAndStyle(Color.Yellow, FontStyle.Underline, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("912c", new SccPositionAndStyle(Color.Magenta, FontStyle.Regular, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("91ad", new SccPositionAndStyle(Color.Magenta, FontStyle.Underline, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("91ae", new SccPositionAndStyle(Color.Transparent, FontStyle.Italic, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("912f", new SccPositionAndStyle(Color.Transparent, FontStyle.Italic | FontStyle.Underline, -1, -1)),
+             new KeyValuePair<string,SccPositionAndStyle>("94a8", new SccPositionAndStyle(Color.Transparent, FontStyle.Regular, -1, -1)),
+        };
         public override string Extension => ".scc";
 
         public override string Name => "Scenarist Closed Captions";
@@ -563,30 +1213,162 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
             }
             return text;
         }
+        public string addSEPositions(Paragraph para)
+        {
+            string text = para.Text;
+            if (para.Horizontal <= 11 && para.Vertical <= 5)
+                text = "{\\an7}"+ text;
+            else if (para.Horizontal <= 21 && para.Vertical <= 5)
+                text = "{\\an8}" + text;
+            else if (para.Horizontal <= 32 && para.Vertical <= 5)
+                text = "{\\an9}" + text;
+            else if (para.Horizontal <= 11 && para.Vertical <= 10)
+                text = "{\\an4}" + text;
+            else if (para.Horizontal <= 21 && para.Vertical <= 10)
+                text = "{\\an5}" + text;
+            else if (para.Horizontal <= 32 && para.Vertical <= 10)
+                text = "{\\an6}" + text;
+            else if (para.Horizontal <= 11 && para.Vertical <= 15)
+                text = "{\\an1}" + text;
+            else if (para.Horizontal <= 21 && para.Vertical <= 15)
+                text = "{\\an2}" + text;
+            else
+                text = "{\\an3}" + text;
 
+            return text;
+
+        }
         public override string ToText(Subtitle subtitle, string title)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine("Scenarist_SCC V1.0");
-            sb.AppendLine();
-            string language = LanguageAutoDetect.AutoDetectGoogleLanguage(subtitle);
-            for (int i = 0; i < subtitle.Paragraphs.Count; i++)
+            try
             {
-                Paragraph p = subtitle.Paragraphs[i];
-                sb.AppendLine(string.Format("{0}\t94ae 94ae 9420 9420 {1} 942f 942f", ToTimeCode(p.StartTime.TotalMilliseconds), ToSccText(p.Text, language)));
+                var sb = new StringBuilder();
+                sb.AppendLine("Scenarist_SCC V1.0");
                 sb.AppendLine();
-
-                Paragraph next = subtitle.GetParagraphOrDefault(i + 1);
-                if (next == null || Math.Abs(next.StartTime.TotalMilliseconds - p.EndTime.TotalMilliseconds) > 100)
+                string language = LanguageAutoDetect.AutoDetectGoogleLanguage(subtitle);
+                for (int i = 0; i < subtitle.Paragraphs.Count; i++)
                 {
-                    sb.AppendLine(string.Format("{0}\t942c 942c", ToTimeCode(p.EndTime.TotalMilliseconds)));
-                    sb.AppendLine();
-                }
-            }
-            return sb.ToString();
-        }
+                    Paragraph p = subtitle.Paragraphs[i];
+                    Paragraph next = subtitle.GetParagraphOrDefault(i + 1);
+                    if (next != null)
+                        p.EndTime.TotalMilliseconds = p.EndTime.TotalMilliseconds;
 
-        private static string ToSccText(string text, string language)
+                    string timeCode = ToTimeCodebyText(p.Text, p.StartTime.TotalMilliseconds, p.EndTime.TotalMilliseconds);
+                     //sb.AppendLine(string.Format("{0}\t94ae 94ae 9420 9420 {1} 942c 942c 8080 8080 942f 942f", timeCode, ToSccAllignedText(p.Text, language)));
+                    sb.AppendLine(string.Format("{0}\t94ae 94ae 9420 9420 {1} 942c 942c 8080 8080 942f 942f", timeCode, ToSccAllignedText(addSEPositions(p), language)));
+                    //sb.AppendLine(string.Format("{0}\t94ae 94ae 9420 9420 {1} 942c 942c 8080 8080 942f 942f", timeCode, ToSccAllignedText(p, language)));
+                    sb.AppendLine();
+
+                    if (next != null)
+                    {
+                        if (p.EndTime.TotalMilliseconds != next.StartTime.TotalMilliseconds)
+                        {
+                            double clearCaptionCode = p.EndTime.TotalMilliseconds;
+                            double nextlineTime = GetTimeCodebyText(next.Text, next.StartTime.TotalMilliseconds);
+                            if (nextlineTime > clearCaptionCode)
+                                sb.AppendLine(string.Format("{0}\t942c 942c", ToTimeCode(clearCaptionCode)));
+                        }
+                    }
+                    else
+                        sb.AppendLine(string.Format("{0}\t942c t942c", ToTimeCode(p.EndTime.TotalMilliseconds + Math.Abs(p.EndTime.TotalMilliseconds - p.StartTime.TotalMilliseconds))));
+                }
+                return sb.ToString();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        private string replaceAllignedChars(string rawText)
+        {
+            var sb = new StringBuilder();
+            sb.Append(GetCodeFromAllignWord(rawText));
+            return sb.ToString().Trim();
+        }
+        /// <summary>
+        /// change the text based on subtitile alignment to scc allignments for all applications
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="language"></param>
+        /// <returns></returns>
+        private string ToSccAllignedText(string text, string language)
+        {
+            var sb = new StringBuilder();
+            string brkCode = string.Empty;
+            // if position not been added manually adding position to bottom center.
+            if (!text.StartsWith("{\\an"))
+                text = "{\\an2}" + text;
+
+            if (text.Contains("{\\an1}") || text.Contains("{\\an2}") || text.Contains("{\\an3}") || text.Contains("{\\an4}") || text.Contains("{\\an5}") || text.Contains("{\\an6}") || text.Contains("{\\an7}") || text.Contains("{\\an8}") || text.Contains("{\\an9}"))
+            {
+
+                text = text.Replace("{\\an1}", "{\\an1}|").Replace("{\\an2}", "{\\an2}|").Replace("{\\an3}", "{\\an3}|").Replace("{\\an4}", "{\\an4}|").Replace("{\\an5}", "{\\an5}|").Replace("{\\an6}", "{\\an6}|").Replace("{\\an7}", "{\\an7}|").Replace("{\\an8}", "{\\an8}|").Replace("{\\an9}", "{\\an9}|");
+                string[] rawSplitedText = text.Split('|');
+                string posCode = replaceAllignedChars(rawSplitedText[0].Trim()) + " ";
+                //center alignment
+                SccPositionAndStyle sccPosition = GetColorAndPosition(posCode.Trim());
+
+                var rawSplitText = (FixMax4LinesAndMax32CharsPerLine(rawSplitedText[1].Trim(), language)).SplitToLines();
+
+                //get position value
+                string position;
+                if (text.Contains("{\\an1}") || text.Contains("{\\an4}") || text.Contains("{\\an7}"))
+                    position = "Left";
+                else if (text.Contains("{\\an3}") || text.Contains("{\\an6}") || text.Contains("{\\an9}"))
+                    position = "Right";
+                else
+                    position = "Center";
+                // get y axis max line value
+                int yaxisvalue = 0;
+                if (rawSplitedText[0] == "{\\an9}" || rawSplitedText[0] == "{\\an8}" || rawSplitedText[0] == "{\\an7}")
+                    yaxisvalue = rawSplitText.Count();
+                else if (rawSplitedText[0] == "{\\an6}" || rawSplitedText[0] == "{\\an5}" || rawSplitedText[0] == "{\\an4}")
+                {
+                    if (rawSplitedText[0] == "{\\an5}")
+                        yaxisvalue = 8;
+                    else
+                        yaxisvalue = 8 - (rawSplitText.Count() > 2 ? rawSplitText.Count() % 2 : 0);
+                }
+                else
+                    yaxisvalue = 15;
+
+                
+                int MaxXLength = rawSplitText.Max(x => x.Length);
+
+                sb.Append(ToSccText(rawSplitedText[1].Trim(), language, MaxXLength, yaxisvalue - 1, position) + " ");
+            }
+
+            return sb.ToString().Trim();
+        }
+        private string ToSccAllignedText(Paragraph paragraph, string language)
+        {
+            var sb = new StringBuilder();
+            string position = string.Empty;
+            if (paragraph.Justification == "L")
+                position = "Left";
+            else if (paragraph.Justification == "R")
+                position = "Right";
+            else
+                position = "Center";
+
+            //sb.Append(ToSccText(paragraph.Text, language, paragraph.Horizontal, paragraph.Vertical, position) + " ");
+
+            var rawSplitText = paragraph.Text.Trim().SplitToLines();
+
+            int yaxisValue = paragraph.Vertical;
+            if (yaxisValue == 15)
+                yaxisValue = yaxisValue - rawSplitText.Count() - 1;
+
+
+
+            sb.Append(ToSccText(paragraph.Text, language, paragraph.Horizontal, yaxisValue, position) + " ");
+
+
+
+
+            return sb.ToString().Trim();
+        }
+        private static string ToSccText(string text, string language, int xPosition = 32, int yposition = 14, string position = "Center")
         {
             text = FixMax4LinesAndMax32CharsPerLine(text, language);
             var lines = text.Trim().SplitToLines();
@@ -598,7 +1380,8 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                 text = line.Trim();
                 if (count > 0)
                     sb.Append(' ');
-                sb.Append(GetCenterCodes(text, count, lines.Count));
+                sb.Append(GetCenterCodesDefault(text, count, lines.Count, xPosition, yposition, position));
+                //sb.Append(GetCenterCodes(text, count, lines.Count, xPosition, yposition));
                 count++;
                 int i = 0;
                 string code = string.Empty;
@@ -704,7 +1487,14 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
 
             return sb.ToString().Trim();
         }
-
+        // get the allignemnt code based on subtitile app related position.
+        private static string GetCodeFromAllignWord(string letter)
+        {
+            var code = AllignmentDictionary.FirstOrDefault(x => x.Value == letter);
+            if (code.Equals(new KeyValuePair<string, string>()))
+                return null;
+            return code.Key;
+        }
         private static string GetCodeFromLetter(string letter)
         {
             var code = LetterDictionary.FirstOrDefault(x => x.Value == letter);
@@ -720,17 +1510,97 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                 return null;
             return letter.Value;
         }
-
-        public static string GetCenterCodes(string text, int lineNumber, int totalLines)
+        public static string GetCenterCodesDefault(string text, int lineNumber, int totalLines, int MaxXposition, int MaxYposition, string position = "Center")
         {
-            int row = 14 - (totalLines - lineNumber);
+            double left, Maxleft; int column = 0, columnRest = 0;
+            int row = MaxYposition - (totalLines - lineNumber);
 
             var rowCodes = new List<string> { "91", "91", "92", "92", "15", "15", "16", "16", "97", "97", "10", "13", "13", "94", "94" };
             string rowCode = rowCodes[row];
+            if (position == "Center")
+            {
+                left = (32.0 - text.Length) / 2.0;
+                columnRest = (int)left % 4;
+                column = (int)left - columnRest;
+            }
+            else if (position == "Right")
+            {
+                left = (32 - text.Length) / 2.0;
+                Maxleft = (32 - MaxXposition) / 2.0;
+                column = (int)(left + Maxleft);
+                columnRest = column % 4;
+                column = column - columnRest;
+            }
+            else
+            {
+                if (rowCode == "91" && totalLines > 1)
+                {
+                    row = lineNumber - 1 < 0 ? 0 : lineNumber - 1;
+                    rowCode = rowCodes[row];
+                }
+                left = (MaxXposition - text.Length) / 2;
+                columnRest = (int)left % 4;
+                column = (int)left - columnRest;
 
-            int left = (32 - text.Length) / 2;
+            }
+
+
+            List<string> columnCodes;
+            switch (column)
+            {
+                case 0:
+                    columnCodes = new List<string> { "d0", "70", "d0", "70", "d0", "70", "d0", "70", "d0", "70", "d0", "d0", "70", "d0", "70" };
+                    break;
+                case 4:
+                    columnCodes = new List<string> { "52", "f2", "52", "f2", "52", "f2", "52", "f2", "52", "f2", "52", "52", "f2", "52", "f2" };
+                    break;
+                case 8:
+                    columnCodes = new List<string> { "54", "f4", "54", "f4", "54", "f4", "54", "f4", "54", "f4", "54", "54", "f4", "54", "f4" };
+                    break;
+                case 12:
+                    columnCodes = new List<string> { "d6", "76", "d6", "76", "d6", "76", "d6", "76", "d6", "76", "d6", "d6", "76", "d6", "76" };
+                    break;
+                case 16:
+                    columnCodes = new List<string> { "58", "f8", "58", "f8", "58", "f8", "58", "f8", "58", "f8", "58", "58", "f8", "58", "f8" };
+                    break;
+                case 20:
+                    columnCodes = new List<string> { "da", "7a", "da", "7a", "da", "7a", "da", "7a", "da", "7a", "da", "da", "7a", "da", "7a" };
+                    break;
+                case 24:
+                    columnCodes = new List<string> { "dc", "7c", "dc", "7c", "dc", "7c", "dc", "7c", "dc", "7c", "dc", "dc", "7c", "dc", "7c" };
+                    break;
+                default: // 28
+                    columnCodes = new List<string> { "5e", "fe", "5e", "fe", "5e", "fe", "5e", "fe", "5e", "fe", "5e", "5e", "fe", "5e", "fe" };
+                    break;
+            }
+            string code = rowCode + columnCodes[row];
+
+            if (columnRest == 1)
+                return code + " " + code + " 97a1 97a1 ";
+            if (columnRest == 2)
+                return code + " " + code + " 97a2 97a2 ";
+            if (columnRest == 3)
+                return code + " " + code + " 9723 9723 ";
+            return code + " " + code + " ";
+        }
+        public static string GetCenterCodes(string text, int lineNumber, int totalLines, int xposition, int yposition)
+        {
+            int row = 0;
+
+            row = yposition - (totalLines - lineNumber);
+            //row = (lineNumber - 1);
+            row = row < 0 ? 0 : row;
+            var rowCodes = new List<string> { "91", "91", "92", "92", "15", "15", "16", "16", "97", "97", "10", "13", "13", "94", "94" };
+            string rowCode = rowCodes[row];
+            if (rowCode == "91" && totalLines > 1)
+            {
+                row = lineNumber - 1 < 0 ? 0 : lineNumber - 1;
+                rowCode = rowCodes[row];
+            }
+            int left = (xposition - text.Length) / 2;
             int columnRest = left % 4;
             int column = left - columnRest;
+
 
             List<string> columnCodes;
             switch (column)
@@ -771,14 +1641,39 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
             return code + " " + code + " ";
         }
 
+        private double GetTimeCodebyText(string code, double startMilliseconds)
+        {
+            double MICROSECONDS_PER_CODEWORD = 1000.0 * 1000.0 / (Configuration.Settings.General.CurrentFrameRate);
+
+            var lines = code.Trim().SplitToLines();
+
+            double code_words = (code.Length / 2) + 10 + (lines.Count * 2);
+            double code_time_microseconds = code_words * MICROSECONDS_PER_CODEWORD;
+            double code_start = startMilliseconds * 1000 - code_time_microseconds;
+            return code_start / 1000;
+
+        }
+        /// <summary>
+        /// convert time code based on text for audio and text sync.
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="startMilliseconds"></param>
+        /// <param name="endMilliseconds"></param>
+        /// <param name="previous_end"></param>
+        /// <returns></returns>
+        private string ToTimeCodebyText(string code, double startMilliseconds, double endMilliseconds, double previous_end = 0.0)
+        {
+            double code_start = GetTimeCodebyText(code, startMilliseconds);
+            return ToTimeCode(code_start);
+        }
+
         private string ToTimeCode(double totalMilliseconds)
         {
             TimeSpan ts = TimeSpan.FromMilliseconds(totalMilliseconds);
             if (DropFrame)
-                return $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00};{MillisecondsToFramesMaxFrameRate(ts.Milliseconds):00}";
-            return $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}:{MillisecondsToFramesMaxFrameRate(ts.Milliseconds):00}";
+                return string.Format("{0:00}:{1:00}:{2:00};{3:00}", ts.Hours, ts.Minutes, ts.Seconds, MillisecondsToFramesMaxFrameRate(ts.Milliseconds));
+            return string.Format("{0:00}:{1:00}:{2:00}:{3:00}", ts.Hours, ts.Minutes, ts.Seconds, MillisecondsToFramesMaxFrameRate(ts.Milliseconds));
         }
-
         public static SccPositionAndStyle GetColorAndPosition(string code)
         {
             switch (code.ToLower(CultureInfo.InvariantCulture))
@@ -1515,7 +2410,16 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
             }
             return null;
         }
-
+        // get the code from postion, color fontstyle
+        private static string GetCodeFromPositionFormats(Color color, FontStyle fontStyle, int y, int x)
+        {
+            SccPositionAndStyle sccPosition = new SccPositionAndStyle(color, fontStyle, y, x);
+            //var letter = PositionDictionary.FirstOrDefault(n => n.Value.X == sccPosition.X && n.Value.Y == sccPosition.Y && n.Value.ForeColor == sccPosition.ForeColor && n.Value.Style == sccPosition.Style);
+            var letter = PositionDictionary.FirstOrDefault(n => n.Value.X == sccPosition.X && n.Value.Y == sccPosition.Y);
+            if (letter.Equals(new KeyValuePair<string, SccPositionAndStyle>()))
+                return null;
+            return letter.Key;
+        }
         public override void LoadSubtitle(Subtitle subtitle, List<string> lines, string fileName)
         {
             _errorCount = 0;

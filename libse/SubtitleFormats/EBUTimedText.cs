@@ -8,12 +8,12 @@ using System.Xml;
 namespace Nikse.SubtitleEdit.Core.SubtitleFormats
 {
     /// <summary>
-    /// SMPTE-TT 2052
+    /// EBU Timed text
     /// </summary>
-    public class SmpteTt2052 : TimedText10
+    public class EBUTimedText : TimedText10
     {
-        public override string Extension => ".ttml";
-        public new const string NameOfFormat = "SMPTE-TT 2052";
+        public override string Extension => ".ebutt";
+        public new const string NameOfFormat = "EBU Timed Text";
         public override string Name => NameOfFormat;
         public override bool IsMine(List<string> lines, string fileName)
         {
@@ -54,7 +54,7 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
             if (code.Equals(new KeyValuePair<string, string>()))
                 return null;
             return code.Key;
-        }        
+        }
         public override bool HasStyleSupport => false;
 
         XmlDocument declaration()
@@ -62,103 +62,238 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
             XmlDocument doc = new XmlDocument();
             #region  xml declaration 
             //(1) the xml declaration is recommended, but not mandatory
-            XmlDeclaration xmlDeclaration = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
-            XmlElement rootDeclaration = doc.DocumentElement;
-            doc.InsertBefore(xmlDeclaration, rootDeclaration);
-
-            XmlElement ttxml = doc.CreateElement("tt");
+            //XmlDeclaration xmlDeclaration = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            //XmlElement rootDeclaration = doc.DocumentElement;
+            //doc.InsertBefore(xmlDeclaration, rootDeclaration);
+                        
+            XmlElement ttxml = doc.CreateElement("tt", "tt", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            doc.AppendChild(ttxml);
+            XmlAttribute timeBase = doc.CreateAttribute("ttp", "timeBase", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            timeBase.Value = "smpte";
+            ttxml.Attributes.Append(timeBase);
 
             XmlAttribute xml = doc.CreateAttribute("xml", "lang", "en");
             xml.Value = "en";
             ttxml.Attributes.Append(xml);
 
-            XmlAttribute xmlns = doc.CreateAttribute("xmlns", "http://www.w3.org/2000/xmlns/");
+            XmlAttribute xmlcellResolution = doc.CreateAttribute("ttp", "cellResolution", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            xmlcellResolution.Value = "50 30";
+            ttxml.Attributes.Append(xmlcellResolution);
+
+            XmlAttribute xmlextent = doc.CreateAttribute("tts", "extent","http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            xmlextent.Value = "704px 576px";
+            ttxml.Attributes.Append(xmlextent);
+
+            XmlAttribute frameRate = doc.CreateAttribute("ttp", "frameRate", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            string FrameRate = "29.97";
+            if (Configuration.Settings.General != null)
+                FrameRate = Configuration.Settings.General.CurrentFrameRate.ToString();
+            frameRate.Value = FrameRate;
+            ttxml.Attributes.Append(frameRate);
+
+            XmlAttribute frameRateMultiplier = doc.CreateAttribute("ttp", "frameRateMultiplier", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            frameRateMultiplier.Value = "1 1";
+            ttxml.Attributes.Append(frameRateMultiplier);
+
+            XmlAttribute markerMode = doc.CreateAttribute("ttp", "markerMode", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            markerMode.Value = "discontinuous";
+            ttxml.Attributes.Append(markerMode);
+
+            XmlAttribute xmlns = doc.CreateAttribute("xmlns", "tt", "http://www.w3.org/2000/xmlns/");
             xmlns.Value = "http://www.w3.org/ns/ttml";
             ttxml.Attributes.Append(xmlns);
 
-            XmlAttribute tts = doc.CreateAttribute("xmlns", "tts", "http://www.w3.org/2000/xmlns/");
-            tts.Value = "http://www.w3.org/ns/ttml#styling";
-            ttxml.Attributes.Append(tts);
+            XmlAttribute xmlttp = doc.CreateAttribute("xmlns", "ttp", "http://www.w3.org/2000/xmlns/");
+            xmlttp.Value = "http://www.w3.org/ns/ttml#parameter";
+            ttxml.Attributes.Append(xmlttp);
+            
+            XmlAttribute xmltts = doc.CreateAttribute("xmlns", "tts", "http://www.w3.org/2000/xmlns/");
+            xmltts.Value = "http://www.w3.org/ns/ttml#styling";
+            ttxml.Attributes.Append(xmltts);            
 
-            XmlAttribute ttm = doc.CreateAttribute("xmlns", "ttm", "http://www.w3.org/2000/xmlns/");
-            ttm.Value = "http://www.w3.org/ns/ttml#metadata";
-            ttxml.Attributes.Append(ttm);
-
-            XmlAttribute smpte = doc.CreateAttribute("xmlns", "smpte", "http://www.w3.org/2000/xmlns/");
-            smpte.Value = "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt";
-            ttxml.Attributes.Append(smpte);
-
-            XmlAttribute m608 = doc.CreateAttribute("xmlns", "m608", "http://www.w3.org/2000/xmlns/");
-            m608.Value = "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt#cea608";
-            ttxml.Attributes.Append(m608);
-
-            XmlAttribute ttp = doc.CreateAttribute("xmlns", "ttp", "http://www.w3.org/2000/xmlns/");
-            ttp.Value = "http://www.w3.org/ns/ttml#parameter";
-            ttxml.Attributes.Append(ttp);
-
-            XmlAttribute timeBase = doc.CreateAttribute("xmlns", "timeBase", "http://www.w3.org/2000/xmlns/");
-            ttp.Value = "media";
-            ttxml.Attributes.Append(ttp);
-
-            XmlAttribute frameRate = doc.CreateAttribute("xmlns", "frameRate", "http://www.w3.org/2000/xmlns/");
-
-            string FrameRate = "29.97";
-            if (Configuration.Settings.General != null) ;
-            FrameRate = Configuration.Settings.General.CurrentFrameRate.ToString();
-
-            ttp.Value = FrameRate;
-            ttxml.Attributes.Append(ttp);
-
-            XmlAttribute frameRateMultiplier = doc.CreateAttribute("xmlns", "frameRateMultiplier", "http://www.w3.org/2000/xmlns/");
-            ttp.Value = "1000 1001";
-            ttxml.Attributes.Append(ttp);
-
-            doc.AppendChild(ttxml);
+            XmlAttribute ttm = doc.CreateAttribute("xmlns", "ebuttm", "http://www.w3.org/2000/xmlns/");
+            ttm.Value = "urn:ebu:tt:metadata";
+            ttxml.Attributes.Append(ttm);            
             #endregion
 
-            XmlElement xmlhead = doc.CreateElement("head"); //Creating an element with Head which is paresnt here 
-            XmlElement xmlmetadata = doc.CreateElement("metadata");//Creating an element named metadata which is child to head element
-            //SMPTE-TT 2052 subtitle
-            XmlElement xmlttm = doc.CreateElement("ttm", "desc", "http://www.w3.org/ns/ttml#metadata");
-            xmlttm.InnerXml = "SMPTE Timed Text document created by Subtitle Edit";
+            XmlElement xmlhead = doc.CreateElement("tt:head"); //Creating an element with Head which is paresnt here 
+            XmlElement xmlmetadata = doc.CreateElement("tt","metadata", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");//Creating 
+            XmlElement docMetadata = doc.CreateElement("ebuttm", "documentMetadata", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            xmlmetadata.AppendChild(docMetadata);
 
-            XmlElement xmlinformation = doc.CreateElement("smpte", "information", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            XmlElement docVersion = doc.CreateElement("ebuttm", "documentEbuttVersion", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            docVersion.InnerXml = "v1.0";
 
-            XmlAttribute xmlm608 = doc.CreateAttribute("xmlns", "m608", "http://www.w3.org/2000/xmlns/");
-            xmlm608.Value = "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt#cea608";
-            xmlinformation.Attributes.Append(xmlm608);
+            XmlElement docTotSubtitiles = doc.CreateElement("ebuttm", "documentTotalNumberOfSubtitles", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            docTotSubtitiles.InnerXml = "11";
+            XmlElement docMaxdispCharRow = doc.CreateElement("ebuttm", "documentMaximumNumberOfDisplayableCharacterInAnyRow", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            docMaxdispCharRow.InnerXml = "40";
+            XmlElement docstartProgram = doc.CreateElement("ebuttm", "documentStartOfProgramme", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            docstartProgram.InnerXml = "00:00:00:00";
+            XmlElement docOrigin = doc.CreateElement("ebuttm", "documentCountryOfOrigin", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            docOrigin.InnerXml = "DE";
+            XmlElement docPublisher = doc.CreateElement("ebuttm", "documentPublisher", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            docPublisher.InnerXml = "Institut fuer Rundfunktechnik";
 
+            docMetadata.AppendChild(docTotSubtitiles);
+            docMetadata.AppendChild(docMaxdispCharRow);
+            docMetadata.AppendChild(docstartProgram);
+            docMetadata.AppendChild(docOrigin);
+            docMetadata.AppendChild(docPublisher);
 
-            XmlAttribute xmlorigin = doc.CreateAttribute("xmlns", "origin", "http://www.w3.org/2000/xmlns/");
-            xmlorigin.Value = "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt#cea608";
-            xmlinformation.Attributes.Append(xmlorigin);
-
-            XmlAttribute timemode = doc.CreateAttribute("mode");
-            timemode.Value = "Preserved";
-            xmlinformation.Attributes.Append(ttp);
-
-            XmlAttribute xmlmchannel = doc.CreateAttribute("xmlns", "channel", "http://www.w3.org/2000/xmlns/");
-            xmlmchannel.Value = "CC1";
-            xmlinformation.Attributes.Append(xmlmchannel);
-
-            XmlAttribute timeprogramName = doc.CreateAttribute("xmlns", "programName", "http://www.w3.org/2000/xmlns/");
-            timeprogramName.Value = "Demo";
-            xmlinformation.Attributes.Append(timeprogramName);
-
-            XmlAttribute xmlcaptionService = doc.CreateAttribute("xmlns", "captionService", "http://www.w3.org/2000/xmlns/");
-            xmlcaptionService.Value = "F1C1CC";
-            xmlinformation.Attributes.Append(xmlcaptionService);
-
-
-            xmlmetadata.AppendChild(xmlttm);
-            xmlmetadata.AppendChild(xmlinformation);
+            xmlmetadata.AppendChild(docMetadata);
             xmlhead.AppendChild(xmlmetadata);
+
+
+            XmlElement xmlstyling = doc.CreateElement("tt:styling");
+
+            XmlElement xmlstyle = doc.CreateElement("tt", "style", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+             
+            XmlAttribute defaultStyle = doc.CreateAttribute("xml", "id", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            defaultStyle.Value = "defaultStyle";
+            xmlstyle.Attributes.Append(defaultStyle);
+
+            XmlAttribute WhiteOnBlack = doc.CreateAttribute("tts", "fontFamily", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            WhiteOnBlack.Value = "monospaceSansSerif";
+            xmlstyle.Attributes.Append(WhiteOnBlack);
+
+            XmlAttribute fontSize = doc.CreateAttribute("tts", "fontSize", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            fontSize.Value = "1c 1c";
+            xmlstyle.Attributes.Append(fontSize);
+
+            XmlAttribute lineHeight = doc.CreateAttribute("tts", "lineHeight", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            lineHeight.Value = "normal";
+            xmlstyle.Attributes.Append(lineHeight);
+
+            XmlAttribute textAlign = doc.CreateAttribute("tt", "textAlign", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            textAlign.Value = "center";
+            xmlstyle.Attributes.Append(textAlign);
+
+            XmlAttribute color = doc.CreateAttribute("tt", "color", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            color.Value = "transparent";
+            xmlstyle.Attributes.Append(color);
+
+            XmlAttribute backgroundColor = doc.CreateAttribute("tt", "backgroundColor", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            backgroundColor.Value = "center";
+            xmlstyle.Attributes.Append(backgroundColor);
+
+            XmlAttribute fontStyle = doc.CreateAttribute("tt", "fontStyle", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            fontStyle.Value = "normal";
+            xmlstyle.Attributes.Append(fontStyle);
+
+            XmlAttribute fontWeight = doc.CreateAttribute("tt", "fontWeight", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            fontWeight.Value = "normal";
+            xmlstyle.Attributes.Append(fontWeight);
+
+            XmlAttribute textDecoration = doc.CreateAttribute("tt", "textDecoration", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            textDecoration.Value = "none";
+            xmlstyle.Attributes.Append(textDecoration);
+
+            xmlstyling.AppendChild(xmlstyle);
+
+            XmlElement xmlstyleWhiteblack = doc.CreateElement("tt", "style", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+
+            XmlAttribute stylecolor = doc.CreateAttribute("tt", "color", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            stylecolor.Value = "white";
+            xmlstyleWhiteblack.Attributes.Append(stylecolor);
+
+            XmlAttribute id = doc.CreateAttribute("tt", "id", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            id.Value = "WhiteOnBlack";
+            xmlstyleWhiteblack.Attributes.Append(id);
+
+            XmlAttribute stylebackgroundColor = doc.CreateAttribute("tt", "backgroundColor", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            stylebackgroundColor.Value = "black";
+            xmlstyleWhiteblack.Attributes.Append(stylebackgroundColor);
+
+            XmlAttribute stylefontSize = doc.CreateAttribute("tt", "fontSize", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            stylefontSize.Value = "normal";
+            xmlstyleWhiteblack.Attributes.Append(stylefontSize);
+            
+            xmlstyling.AppendChild(xmlstyleWhiteblack);
+
+
+            XmlElement xmlstyleCenter = doc.CreateElement("tt", "style", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+
+            XmlAttribute styleid = doc.CreateAttribute("tt", "id", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            styleid.Value = "textCenter";
+            xmlstyleCenter.Attributes.Append(styleid);
+
+            XmlAttribute styletextAlign = doc.CreateAttribute("tt", "textAlign", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            styletextAlign.Value = "Center";
+            xmlstyleCenter.Attributes.Append(styletextAlign);            
+
+            xmlstyling.AppendChild(xmlstyleCenter);
+                        
+            XmlElement layout = doc.CreateElement("tt","layout", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+                                  
+            XmlElement xmlalignregion = doc.CreateElement("tt", "region", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+
+            XmlAttribute xmlid = doc.CreateAttribute("xml", "id", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            xmlid.Value = "top";
+            xmlalignregion.Attributes.Append(xmlid);
+
+            XmlAttribute xmlorigin = doc.CreateAttribute("tts", "origin", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            xmlorigin.Value = "10% 10%";
+            xmlalignregion.Attributes.Append(xmlorigin);
+
+            XmlAttribute xmlextents = doc.CreateAttribute("tts", "extent", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            xmlextents.Value = "80% 80%";
+            xmlalignregion.Attributes.Append(xmlextents);
+
+            XmlAttribute padding = doc.CreateAttribute("tts", "padding", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            padding.Value = "0c";
+            xmlalignregion.Attributes.Append(padding);
+
+            XmlAttribute displayAlign = doc.CreateAttribute("tts", "displayAlign", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            displayAlign.Value = "before";
+            xmlalignregion.Attributes.Append(displayAlign);
+
+            XmlAttribute writingMode = doc.CreateAttribute("tts", "writingMode", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            writingMode.Value = "lrtb";
+            xmlalignregion.Attributes.Append(writingMode);
+
+            layout.AppendChild(xmlalignregion);
+
+            XmlElement xmlalignregionbottom = doc.CreateElement("tt", "region", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+
+            XmlAttribute xmlidbottom = doc.CreateAttribute("xml", "id", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            xmlid.Value = "bottom";
+            xmlalignregionbottom.Attributes.Append(xmlid);
+
+            XmlAttribute xmloriginbottom = doc.CreateAttribute("tts", "origin", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            xmloriginbottom.Value = "10% 10%";
+            xmlalignregionbottom.Attributes.Append(xmloriginbottom);
+
+            XmlAttribute xmlextentbottom = doc.CreateAttribute("tts", "extent", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            xmlextentbottom.Value = "80% 80%";
+            xmlalignregionbottom.Attributes.Append(xmlextentbottom);
+
+            XmlAttribute paddingbottom = doc.CreateAttribute("tts", "padding", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            paddingbottom.Value = "0c";
+            xmlalignregionbottom.Attributes.Append(paddingbottom);
+
+            XmlAttribute displayAlignbottom = doc.CreateAttribute("tts", "displayAlign", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            displayAlignbottom.Value = "after";
+            xmlalignregionbottom.Attributes.Append(displayAlignbottom);
+
+            XmlAttribute writingModebottom = doc.CreateAttribute("tts", "writingMode", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            writingModebottom.Value = "lrtb";
+            xmlalignregionbottom.Attributes.Append(writingModebottom);
+
+            layout.AppendChild(xmlalignregionbottom);
+
+            xmlhead.AppendChild(xmlmetadata);
+            xmlhead.AppendChild(xmlstyling);
+            xmlhead.AppendChild(layout);
+            //xmlmetadata.AppendChild(xmlinformation);            
             ttxml.AppendChild(xmlhead);
 
-            XmlElement xmlbody = doc.CreateElement("body"); //Creating an element with body which is paresnt here 
-            XmlElement xmlbiv = doc.CreateElement("div");
+            //XmlElement xmlbody = doc.CreateElement("tt:body"); //Creating an element with body which is paresnt here 
+            XmlElement xmlbody = doc.CreateElement("tt", "body", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            XmlElement xmldiv = doc.CreateElement("tt", "div", "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
+            //XmlElement xmlbiv = doc.CreateElement("tt:div");
 
-            xmlbody.AppendChild(xmlbiv);
+            xmlbody.AppendChild(xmldiv);
             ttxml.AppendChild(xmlbody);
             return doc;
         }
@@ -177,12 +312,11 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
             XmlDocument xml = declaration();
             var nsmgr = new XmlNamespaceManager(xml.NameTable);
             nsmgr.AddNamespace("ttml", "http://www.w3.org/ns/ttml");
-            var div = xml.DocumentElement.SelectSingleNode("body", nsmgr).SelectSingleNode("div", nsmgr);
-            bool hasTopCenterRegion = false;
-
+            //var div = xml.DocumentElement.SelectNodes("tt:body").SelectSingleNode("body", nsmgr).SelectSingleNode("div", nsmgr);
+            var div = xml.DocumentElement.LastChild.LastChild;
             foreach (var p in subtitle.Paragraphs)
             {
-                XmlNode paragraph = xml.CreateElement("p", "http://www.w3.org/ns/ttml");
+                XmlNode paragraph = xml.CreateElement("tt:p", "http://www.w3.org/ns/ttml");
                 string text = p.Text;
 
                 XmlAttribute start = xml.CreateAttribute("begin");
@@ -198,11 +332,11 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                     // if position comes after the formatting.
                     System.Text.RegularExpressions.Regex reg = new System.Text.RegularExpressions.Regex(@"{\\an\d}");
                     System.Text.RegularExpressions.Match match = reg.Match(text);
-
-                    text = text.Replace(match.Value, "");
+                    
+                    text = text.Replace(match.Value,"");
                     string totext = Posistioning(match.Value);
                     string[] slpittext = totext.Split('\'');
-
+                    
                     XmlAttribute originattr = xml.CreateAttribute("tts:origin", paragraph.NamespaceURI);
                     originattr.InnerText = slpittext[1];
                     paragraph.Attributes.Append(originattr);
@@ -213,32 +347,31 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                 }
                 else if (p.Vertical > 0)
                 {
-                    
-                    string origin,extent;
+                   // decimal horizantalPercent, verticalPercent;
+                    string origin, extent;
+                    //horizantalPercent = Convert.ToDecimal((p.Horizontal == 0 ? 1.0 : p.Horizontal) * 6.66);
+                    //verticalPercent = Convert.ToDecimal(p.Vertical * 3.125);
 
-                    //horizantalPercent = 10 + Convert.ToDecimal((p.Horizontal == 0 ? 1.0 : p.Horizontal) * 3.125);
-                    //verticalPercent = 10 + Convert.ToDecimal(p.Vertical * 6.66);
+
                     //decimal x = 10 * (1 - horizantalPercent / 100);
                     //decimal y = 10 * (1 - verticalPercent / 100);
+                    //origin = x + "% " + y + "%";
+                    //extent = x + "% 5.33%";
+
                     var lines = text.SplitToLines();
                     int maxLineLength = lines.Max(x => x.Length);
 
                     double originX = 10.0 + (p.Horizontal * 2.5);
                     double originY = 10 + (p.Vertical * 5.33);
                     double extentX = (maxLineLength * 2.5);
-                    double extentY =  5.33;
+                    double extentY = 5.33;
 
                     originX = originX < 85 ? originX : 85;
                     extentX = extentX < 85 ? extentX : 85;
                     origin = originX + "% " + originY + "%";
-                    extent = extentX + "% "+ extentY + "%";
+                    extent = extentX + "% " + extentY + "%";
 
-                    //horizantalPercent = Convert.ToDecimal((p.Horizontal == 0 ? 1.0 : p.Horizontal) * 6.66);
-                    //verticalPercent = Convert.ToDecimal(p.Vertical * 3.125);
-                    //origin = x+"% " + y+"%";
-                    //extent = x + "% 5.33%";
-                    //origin = verticalPercent + ", " + horizantalPercent + "";
-                    //extent = "10% 5.33%";
+
                     XmlAttribute originattr = xml.CreateAttribute("tts:origin", paragraph.NamespaceURI);
                     originattr.InnerText = origin;
                     paragraph.Attributes.Append(originattr);
@@ -385,7 +518,7 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                 }
                 div.AppendChild(paragraph);
             }
-            string xmlString = xml.InnerXml.Replace(" xmlns=\"\"", string.Empty).Replace(" xmlns:tts=\"http://www.w3.org/ns/10/ttml#style\">", ">").Replace("<br />", "<br/>").Replace("xmlns:tts=\"http://www.w3.org/ns/ttml\"", "").Replace("\n", "<br/>");
+            string xmlString = xml.InnerXml.Replace(" xmlns=\"\"", string.Empty).Replace(" xmlns:tts=\"http://www.w3.org/ns/10/ttml#style\">", ">").Replace("<br />", "<tt:br/>").Replace("xmlns:tts=\"http://www.w3.org/ns/ttml\"", "").Replace("\n", "<tt:br/>");
 
             return xmlString;
         }

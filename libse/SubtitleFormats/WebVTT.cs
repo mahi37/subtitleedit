@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Nikse.SubtitleEdit.Core.SubtitleFormats
@@ -45,36 +46,148 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
         {
             string positionInfo = string.Empty;
 
+            string regex = "(\\{.*\\})";
+            string actualText = System.Text.RegularExpressions.Regex.Replace(p.Text, regex, "");
+            var lines = actualText.SplitToLines();
+            int maxLineLength = lines.Max(x => x.Length);
+            int rightLength = (System.Net.WebUtility.HtmlDecode(actualText)).Length ;
+
             if (p.Text.StartsWith("{\\a", StringComparison.Ordinal))
             {
                 string position = null; // horizontal
                 if (p.Text.StartsWith("{\\an1}", StringComparison.Ordinal) || p.Text.StartsWith("{\\an4}", StringComparison.Ordinal) || p.Text.StartsWith("{\\an7}", StringComparison.Ordinal)) // advanced sub station alpha
                 {
-                    position = "20%"; //left
+                    //position = "20%"; //left                    
+                    position = 14 + maxLineLength + "%";
                 }
                 else if (p.Text.StartsWith("{\\an3}", StringComparison.Ordinal) || p.Text.StartsWith("{\\an6}", StringComparison.Ordinal) || p.Text.StartsWith("{\\an9}", StringComparison.Ordinal)) // advanced sub station alpha
                 {
-                    position = "80%"; //right
+                    //commented code is correct based on cpc soft but break lines are coming
+                    //double decimalResult = ((90 - (maxLineLength * 1.25)) % 1 != 0 && ((maxLineLength * 1.25).ToString()).Split('.')[1] != "5") ? (90 - (maxLineLength * 1.25) + 1) : (90 - (maxLineLength * 1.25));
+                    //position = (int)Math.Ceiling(decimalResult) + "%";
+
+                    double decimalResult = ((88 - (maxLineLength * 1.25)) % 1 != 0 && ((maxLineLength * 1.25).ToString()).Split('.')[1] != "5") ? (88 - (maxLineLength * 1.25) + 1) : (88 - (maxLineLength * 1.25));
+                    position = (int)Math.Ceiling(decimalResult) + "%";
+
+                    //double decimalResult = ((90 - (maxLineLength * 1.25)) % 1 != 0 && ((maxLineLength * 1.25).ToString()).Split('.')[1] != "5") ? (90 - (maxLineLength * 1.25) - 1) : (90 - (maxLineLength * 1.25));
+                    //position = (int)Math.Ceiling(decimalResult) + "%";
+
+                    //double decimalResult =  (90 - (maxLineLength * 1.25));
+                    //position = Math.Round(decimalResult) + "%";
+                }
+                else if (p.Text.StartsWith("{\\an2}", StringComparison.Ordinal) || p.Text.StartsWith("{\\an5}", StringComparison.Ordinal) || p.Text.StartsWith("{\\an8}", StringComparison.Ordinal)) // advanced sub station alpha
+                {
+                    position = "50%"; //center
                 }
 
                 string line = null;
                 if (p.Text.StartsWith("{\\an7}", StringComparison.Ordinal) || p.Text.StartsWith("{\\an8}", StringComparison.Ordinal) || p.Text.StartsWith("{\\an9}", StringComparison.Ordinal)) // advanced sub station alpha
                 {
-                    line = "20%"; //top
+                    // line = "20%"; //top
+                    line = "10%";
                 }
                 else if (p.Text.StartsWith("{\\an4}", StringComparison.Ordinal) || p.Text.StartsWith("{\\an5}", StringComparison.Ordinal) || p.Text.StartsWith("{\\an6}", StringComparison.Ordinal)) // advanced sub station alpha
                 {
-                    line = "50%"; //middle
+                    //line = "50%"; //middle
+                    line = "47%";
                 }
-
-                if (!string.IsNullOrEmpty(position))
+                else if (p.Text.StartsWith("{\\an1}", StringComparison.Ordinal) || p.Text.StartsWith("{\\an2}", StringComparison.Ordinal) || p.Text.StartsWith("{\\an3}", StringComparison.Ordinal)) // advanced sub station alpha
                 {
-                    positionInfo = " position:" + position;
+                    line = "90%"; //bottom
                 }
                 if (!string.IsNullOrEmpty(line))
                 {
-                    positionInfo += " line:" + line;
+                    if (positionInfo == null)
+                        positionInfo = "align:middle line:" + line;
+                    else
+                        positionInfo = " align:middle line:" + line;
                 }
+                // as per requirement all justificaiton alignment will be middle   
+                if (!string.IsNullOrEmpty(position))
+                {
+
+                    positionInfo += " position:" + position + " size:" + (int)Math.Ceiling(maxLineLength * 2.5) + "%";
+                }
+            }
+            else if (p.Vertical > 0)
+            {
+                // horizontal
+                string position = null;                
+                if (p.Horizontal == 0)
+                {
+                    position = "10%"; //center
+                }
+                else if (p.Horizontal == 16) 
+                {
+                    position = "50%"; //center
+                }
+                else if (p.Horizontal == 28 || p.Horizontal == 32)
+                {
+                    position = "90%"; //center
+                }
+                else if (p.Horizontal < 16 )
+                {
+                    position = p.Horizontal*10 +"%"; //center
+                }
+                else if (p.Horizontal > 16 )
+                {
+                    position = p.Horizontal * 13 + "%"; //center
+                }
+
+
+                //Vertical
+                string line = null;
+                if (p.Vertical == 1)
+                {
+                    line = "10%";
+                }
+                else if (p.Vertical == 8)
+                {
+                     line = "47%";
+                }
+                else if (p.Vertical == 15)
+                {
+                     line = "90%";
+                }
+                else if (p.Vertical < 8)
+                {
+                    line = 10+ (int)Math.Ceiling(p.Vertical*5.3) + "%";
+                }
+                else if (p.Vertical > 8)
+                {
+                    line = 10 + (int)Math.Ceiling(p.Vertical * 5.3) + "%";
+                }
+                string justification = "middle";
+                //start new justification code reading from formatconverter
+                if (p.Justification == "C")
+                {
+                    justification = "middle";
+                }
+                else if (p.Justification == "L")
+                {
+                    justification = "left";
+                }
+                if (p.Justification == "R")
+                {
+                    justification = "right";
+                }//end new justification code reading from formatconverter
+
+                justification = "middle"; // To Do: will be removed once positions are fixed
+
+                if (!string.IsNullOrEmpty(line))
+                {
+                    if (positionInfo == null)
+                        positionInfo = "align:"+ justification + " line:" + line;
+                    else
+                        positionInfo = " align:"+ justification+" line:" + line;
+                }
+                // as per requirement all justificaiton alignment will be middle   
+                if (!string.IsNullOrEmpty(position))
+                {
+
+                    positionInfo += " position:" + position + " size:" + (int)Math.Ceiling(maxLineLength * 2.5) + "%";
+                }
+
             }
 
             return positionInfo;
@@ -94,43 +207,35 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
         {
             _errorCount = 0;
             Paragraph p = null;
+            bool textDone = true;
             string positionInfo = string.Empty;
-            bool hadEmptyLine = false;
-            int numbers = 0;
-            for (var index = 0; index < lines.Count; index++)
+            foreach (string line in lines)
             {
-                string line = lines[index];
-                string next = string.Empty;
-                if (index < lines.Count -1)
-                    next = lines[index + 1];
-                var s = line;
+                string s = line;
                 bool isTimeCode = line.Contains("-->");
                 if (isTimeCode && RegexTimeCodesMiddle.IsMatch(s))
                 {
                     s = "00:" + s; // start is without hours, end is with hours
                 }
-
                 if (isTimeCode && RegexTimeCodesShort.IsMatch(s))
                 {
                     s = "00:" + s.Replace("--> ", "--> 00:");
                 }
 
-                if (isTimeCode && RegexTimeCodes.IsMatch(s.TrimStart()))
+                if (isTimeCode && RegexTimeCodes.IsMatch(s))
                 {
+                    textDone = false;
                     if (p != null)
                     {
-                        p.Text = p.Text.TrimEnd();
                         subtitle.Paragraphs.Add(p);
+                        p = null;
                     }
-
                     try
                     {
-                        var parts = s.TrimStart().Replace("-->", "@").Split(new[] { '@' }, StringSplitOptions.RemoveEmptyEntries);
-                        p = new Paragraph
-                        {
-                            StartTime = GetTimeCodeFromString(parts[0]),
-                            EndTime = GetTimeCodeFromString(parts[1])
-                        };
+                        string[] parts = s.Replace("-->", "@").Split(new[] { '@' }, StringSplitOptions.RemoveEmptyEntries);
+                        p = new Paragraph();
+                        p.StartTime = GetTimeCodeFromString(parts[0]);
+                        p.EndTime = GetTimeCodeFromString(parts[1]);
                         positionInfo = GetPositionInfo(s);
                     }
                     catch (Exception exception)
@@ -139,47 +244,25 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                         _errorCount++;
                         p = null;
                     }
-
-                    hadEmptyLine = false;
                 }
                 else if (subtitle.Paragraphs.Count == 0 && line.Trim() == "WEBVTT")
                 {
                     subtitle.Header = "WEBVTT";
                 }
-                else if (p != null && hadEmptyLine && Utilities.IsInteger(line) && 
-                         (RegexTimeCodesMiddle.IsMatch(next) ||
-                          RegexTimeCodesShort.IsMatch(next) ||
-                          RegexTimeCodes.IsMatch(next)))
-                {
-                    numbers++;
-                }
-                else if (p != null)
+                else if (p != null && !string.IsNullOrWhiteSpace(line))
                 {
                     string text = positionInfo + line.Trim();
-                    if (string.IsNullOrEmpty(text))
-                        hadEmptyLine = true;
-                    if (string.IsNullOrEmpty(p.Text))
-                        p.Text = text + Environment.NewLine;
-                    else
-                        p.Text += text + Environment.NewLine;
+                    if (!textDone)
+                        p.Text = (p.Text + Environment.NewLine + text).Trim();
                     positionInfo = string.Empty;
                 }
+                else if (line.Length == 0)
+                {
+                    textDone = true;
+                }
             }
-
             if (p != null)
-            {
-                p.Text = p.Text.TrimEnd();
                 subtitle.Paragraphs.Add(p);
-            }
-
-            if (subtitle.Paragraphs.Count > 5 && 
-                numbers >= subtitle.Paragraphs.Count - 1 &&
-                lines[0] == "WEBVTT FILE")
-            {
-                // let format WebVTTFileWithLineNumber take the subtitle
-                _errorCount = subtitle.Paragraphs.Count + 1;
-                return;
-            }
 
             foreach (var paragraph in subtitle.Paragraphs)
             {

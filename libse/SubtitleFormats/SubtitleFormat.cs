@@ -48,7 +48,7 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                     new Csv4(),
                     new Csv5(),
                     new CsvNuendo(),
-                    new DCinemaInterop(),
+                    new DCSubtitle(),
                     new DCinemaSmpte2010(),
                     new DCinemaSmpte2007(),
                     new DigiBeta(),
@@ -59,6 +59,8 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                     new DvdSubtitle(),
                     new DvdSubtitleSystem(),
                     new Ebu(),
+					new EBUTimedText(),
+                    new EBUTimedTextD(),
                     new Edl(),
                     new Eeg708(),
                     new F4Text(),
@@ -321,6 +323,7 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
         }
 
         public virtual bool IsTimeBased => true;
+		public bool srtPositionValue;
 
         public bool IsFrameBased => !IsTimeBased;
 

@@ -29,7 +29,17 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                 sb.Append(p.StartTime);
                 sb.Append("\",\"end\":\"");
                 sb.Append(p.EndTime);
-                sb.Append("\",\"text\": [");
+                sb.Append("\",\"horizontal\":\"");
+                sb.Append(p.Horizontal);
+                sb.Append("\",\"vertical\":\"");
+                sb.Append(p.Vertical);
+                
+                if (!string.IsNullOrEmpty(p.Justification))
+                {
+                    sb.Append("\",\"justification\":\"");
+                    sb.Append(p.Justification);
+                }
+                sb.Append("\",\"text\": ");
                 if (!string.IsNullOrEmpty(p.Text))
                 {
                     foreach (var line in p.Text.SplitToLines())
@@ -39,7 +49,7 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                         sb.Append("\"");
                     }
                 }
-                sb.Append("]}");
+                sb.Append("}");
                 count++;
             }
             sb.Append(']');
@@ -63,19 +73,27 @@ namespace Nikse.SubtitleEdit.Core.SubtitleFormats
                 {
                     var start = Json.ReadTag(s, "start");
                     var end = Json.ReadTag(s, "end");
-                    var textLines = Json.ReadArray(s, "text");
+                    //var textLines = Json.ReadArray(s, "text");
+                    var textLines = Json.ReadTag(s, "text");
+                    var horizontal = Json.ReadTag(s, "horizontal");
+                    var vertical = Json.ReadTag(s, "vertical");
+                    var justification = Json.ReadTag(s, "justification");
                     try
                     {
-                        if (textLines.Count == 0)
-                        {
-                            _errorCount++;
-                        }
+                        //if (textLines.Count == 0)
+                        //{
+                        //    _errorCount++;
+                        //}
+                        //sb.Clear();
+                        //foreach (var textLine in textLines)
+                        //{
+                        //    sb.AppendLine(Json.DecodeJsonText(textLine));
+                        //}
+
                         sb.Clear();
-                        foreach (var textLine in textLines)
-                        {
-                            sb.AppendLine(Json.DecodeJsonText(textLine));
-                        }
-                        subtitle.Paragraphs.Add(new Paragraph(sb.ToString().Trim(), TimeCode.ParseToMilliseconds(start), TimeCode.ParseToMilliseconds(end)));
+                        sb.AppendLine((Json.DecodeJsonText(textLines)).Replace("\n", Environment.NewLine).Replace("<br/>", Environment.NewLine).Replace("<br/>", Environment.NewLine));
+                        //subtitle.Paragraphs.Add(new Paragraph(sb.ToString().Trim(), TimeCode.ParseToMilliseconds(start), TimeCode.ParseToMilliseconds(end)));
+                        subtitle.Paragraphs.Add(new Paragraph(sb.ToString().Trim(), TimeCode.ParseToMilliseconds(start), TimeCode.ParseToMilliseconds(end),horizontal.Trim(),vertical.Trim(), justification.Trim()));
                     }
                     catch (Exception)
                     {
