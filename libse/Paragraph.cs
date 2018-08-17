@@ -49,6 +49,10 @@ namespace Nikse.SubtitleEdit.Core
 
         public bool NewSection { get; set; }
 
+        public int Horizontal { get; set; }
+        public int Vertical { get; set; }
+        public string Justification { get; set; }
+
         private string GenerateId()
         {
             return Guid.NewGuid().ToString();
@@ -59,6 +63,9 @@ namespace Nikse.SubtitleEdit.Core
             StartTime = TimeCode.FromSeconds(0);
             EndTime = TimeCode.FromSeconds(0);
             Text = string.Empty;
+            Horizontal = 1;
+            Vertical = 1;
+            Justification = "C";
             ID = GenerateId();
         }
 
@@ -92,6 +99,9 @@ namespace Nikse.SubtitleEdit.Core
             Language = paragraph.Language;
             Style = paragraph.Style;
             NewSection = paragraph.NewSection;
+            Horizontal = paragraph.Horizontal;
+            Vertical = paragraph.Vertical;
+            Justification = paragraph.Justification;
         }
 
         public Paragraph(int startFrame, int endFrame, string text)
@@ -154,6 +164,23 @@ namespace Nikse.SubtitleEdit.Core
                     return 0;
                 return (60.0 / Duration.TotalSeconds) * Text.CountWords();
             }
+        }
+        public Paragraph(string text, double startTotalMilliseconds, double endTotalMilliseconds, string horizontal , string vertical,string justification="C")
+        {
+            StartTime = new TimeCode(startTotalMilliseconds);
+            EndTime = new TimeCode(endTotalMilliseconds);
+            if (text.Contains("<br/>"))
+                text = text.Replace("<br/>", "<br />");
+            Text = text;
+            ID = GenerateId();
+            if (!String.IsNullOrEmpty(horizontal))
+                Horizontal = int.Parse(horizontal);
+            if (!String.IsNullOrEmpty(vertical))
+                Vertical = int.Parse(vertical);
+            if (!String.IsNullOrEmpty(vertical))
+                Justification = justification;
+            else
+                Justification = "C";
         }
     }
 }
