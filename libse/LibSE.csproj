@@ -222,7 +222,6 @@
     </Compile>
     <Compile Include="RealFFT.cs" />
     <Compile Include="RegistryUtil.cs" />
-    <Compile Include="ReplaceExpression.cs" />
     <Compile Include="RichTextToPlainText.cs" />
     <Compile Include="SceneChangeHelper.cs" />
     <Compile Include="Settings.cs" />
@@ -241,6 +240,8 @@
     <Compile Include="SubtitleFormats\CsvNuendo.cs" />
     <Compile Include="SubtitleFormats\Csv5.cs" />
     <Compile Include="SubtitleFormats\DvdStudioProSpaceOneSemicolon.cs" />
+    <Compile Include="SubtitleFormats\EBUTimedText.cs" />
+    <Compile Include="SubtitleFormats\EBUTimedTextD.cs" />
     <Compile Include="SubtitleFormats\FinalCutProXml17.cs" />
     <Compile Include="SubtitleFormats\FinalCutProXml16.cs" />
     <Compile Include="SubtitleFormats\FinalCutProXml15.cs" />
@@ -301,7 +302,7 @@
     <Compile Include="SubtitleFormats\Csv3.cs" />
     <Compile Include="SubtitleFormats\DCinemaSmpte2007.cs" />
     <Compile Include="SubtitleFormats\DCinemaSmpte2010.cs" />
-    <Compile Include="SubtitleFormats\DCinemaInterop.cs" />
+    <Compile Include="SubtitleFormats\DCSubtitle.cs" />
     <Compile Include="SubtitleFormats\DigiBeta.cs" />
     <Compile Include="SubtitleFormats\Dost.cs" />
     <Compile Include="SubtitleFormats\DvdStudioPro.cs" />
@@ -577,6 +578,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
